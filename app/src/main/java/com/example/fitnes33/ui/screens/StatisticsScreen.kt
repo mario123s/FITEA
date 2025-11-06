@@ -11,100 +11,122 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.fitnes33.data.model.ActivityStatistics
 import com.example.fitnes33.data.model.ActivityType
-import com.example.fitnes33.data.model.TimeRecord
 import com.example.fitnes33.data.repository.TimeRepository
 import com.example.fitnes33.ui.theme.*
 import com.example.fitnes33.util.formatDuration
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+
 
 @Composable
 fun StatisticsScreen(
     repository: TimeRepository
 ) {
-    // Usar un estado local para almacenar los registros
-    var recordsList by remember { mutableStateOf<List<TimeRecord>>(emptyList()) }
+    var statisticsList by remember { mutableStateOf<List<ActivityStatistics>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    val scope = rememberCoroutineScope()
+    
+    fun loadStatistics() {
+        scope.launch {
+            isLoading = true
+            // Obtener registros de los últimos 30 días
+            val currentDate = repository.getCurrentDate()
+            val cal = java.util.Calendar.getInstance()
+            val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+            
+            // Calcular fecha de inicio (30 días atrás)
+            cal.add(java.util.Calendar.DAY_OF_YEAR, -29)
+            val startDate = sdf.format(cal.time)
+            
+            // Obtener estadísticas agrupadas
+            val stats = repository.getGroupedStatisticsByDateRange(startDate, currentDate)
+            statisticsList = stats
+            isLoading = false
+        }
+    }
     
     LaunchedEffect(Unit) {
-        // Obtener registros de los últimos 30 días
-        val currentDate = repository.getCurrentDate()
-        val dates = (0..29).map { days ->
-            val cal = java.util.Calendar.getInstance()
-            cal.add(java.util.Calendar.DAY_OF_YEAR, -days)
-            val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
-            sdf.format(cal.time)
-        }
-        
-        // Recopilar todos los registros de las fechas usando first() para obtener solo el valor actual
-        val allRecords = mutableListOf<TimeRecord>()
-        dates.forEach { date ->
-            val records = repository.getRecordsByDate(date).first()
-            allRecords.addAll(records)
-        }
-        recordsList = allRecords
+        loadStatistics()
     }
     
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        FireFitBlue,
-                        FireFitViolet
-                    )
-                )
-            )
+            .background(AppBackgroundColor)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
-            // Header
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = FireFitDarkGray.copy(alpha = 0.9f)
-                ),
-                shape = RoundedCornerShape(20.dp)
+            // Header con botón de reinicio
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp)
-                ) {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "Estadísticas",
-                        fontSize = 24.sp,
+                        fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
-                        color = FireFitWhite
+                        color = Color.Black,
+                        modifier = Modifier.padding(bottom = 8.dp)
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Historial de actividades",
-                        fontSize = 14.sp,
-                        color = FireFitLightGray
+                        text = "Resumen de actividades",
+                        fontSize = 16.sp,
+                        color = Color.Black,
+                        modifier = Modifier.padding(bottom = 24.dp)
                     )
+                }
+                
+                // Botón de reinicio
+                Card(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .shadow(elevation = 2.dp, shape = RoundedCornerShape(12.dp)),
+                    colors = CardDefaults.cardColors(
+                        containerColor = BackgroundWhite
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    IconButton(
+                        onClick = { loadStatistics() },
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Reiniciar estadísticas",
+                            tint = TextDarkGray.copy(alpha = 0.8f),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
             }
             
-            // Lista de registros
-            if (recordsList.isNotEmpty()) {
+            // Lista de estadísticas agrupadas
+            if (isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = TransportColor)
+                }
+            } else if (statisticsList.isNotEmpty()) {
                 LazyColumn(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    val groupedRecords = recordsList.groupBy { it.date }
-                    items(groupedRecords.entries.toList()) { entry ->
-                        DateGroupCard(entry.key, entry.value)
+                    items(statisticsList) { stat ->
+                        ActivityStatisticsCard(stat)
                     }
                 }
             } else {
@@ -114,7 +136,8 @@ fun StatisticsScreen(
                 ) {
                     Text(
                         text = "No hay registros aún",
-                        color = FireFitLightGray
+                        fontSize = 16.sp,
+                        color = TextDarkGray.copy(alpha = 0.6f)
                     )
                 }
             }
@@ -123,70 +146,57 @@ fun StatisticsScreen(
 }
 
 @Composable
-fun DateGroupCard(date: String, records: List<TimeRecord>) {
+fun ActivityStatisticsCard(statistics: ActivityStatistics) {
+    val (icon, iconColor) = when (statistics.activityType) {
+        ActivityType.TRANSPORT -> Icons.Default.DriveEta to TransportColor
+        ActivityType.STUDY -> Icons.Default.MenuBook to StudyColor
+        ActivityType.WALKING -> Icons.Default.DirectionsWalk to WalkingColor
+        ActivityType.SPORT -> Icons.Default.Sports to SportColor
+    }
+    
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(elevation = 4.dp, shape = RoundedCornerShape(16.dp)),
         colors = CardDefaults.cardColors(
-            containerColor = FireFitDarkGray.copy(alpha = 0.9f)
+            containerColor = BackgroundWhite
         ),
         shape = RoundedCornerShape(16.dp)
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = date,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = FireFitOrange,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-            
-            records.forEach { record ->
-                RecordItem(record)
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-        }
-    }
-}
-
-@Composable
-fun RecordItem(record: TimeRecord) {
-    val icon = when (record.activityType) {
-        ActivityType.TRANSPORT -> Icons.Default.DriveEta
-        ActivityType.STUDY -> Icons.Default.MenuBook
-        ActivityType.WALKING -> Icons.Default.DirectionsWalk
-        ActivityType.SPORT -> Icons.Default.Sports
-    }
-    
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(20.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Ícono a la izquierda
             Icon(
                 imageVector = icon,
-                contentDescription = record.activityType.displayName,
-                tint = FireFitOrange,
-                modifier = Modifier.size(20.dp)
+                contentDescription = statistics.activityType.displayName,
+                tint = iconColor,
+                modifier = Modifier.size(48.dp)
             )
-            Column {
+            
+            Spacer(modifier = Modifier.width(16.dp))
+            
+            // Información a la derecha
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.End
+            ) {
                 Text(
-                    text = record.activityType.displayName,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = FireFitWhite
+                    text = statistics.activityType.displayName,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextDarkGray
                 )
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = formatDuration(record.duration),
-                    fontSize = 12.sp,
-                    color = FireFitLightGray
+                    text = formatDuration(statistics.totalDuration),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = TextDarkGray.copy(alpha = 0.7f)
                 )
             }
         }
@@ -203,14 +213,7 @@ fun SettingsScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        FireFitBlue,
-                        FireFitViolet
-                    )
-                )
-            )
+            .background(AppBackgroundColor)
     ) {
         Column(
             modifier = Modifier
@@ -223,7 +226,7 @@ fun SettingsScreen(
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = FireFitDarkGray.copy(alpha = 0.9f)
+                    containerColor = Color(0xFFFFFFFF) // Blanco
                 ),
                 shape = RoundedCornerShape(20.dp)
             ) {
@@ -236,7 +239,7 @@ fun SettingsScreen(
                         text = "Configuración",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = FireFitWhite
+                        color = Color(0xFF333333) // Gris oscuro
                     )
                 }
             }
@@ -249,7 +252,7 @@ fun SettingsScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = FireFitDarkGray.copy(alpha = 0.9f)
+                        containerColor = Color(0xFFFFFFFF) // Blanco
                     ),
                     shape = RoundedCornerShape(16.dp)
                 ) {
@@ -262,7 +265,7 @@ fun SettingsScreen(
                             text = "Nombre de usuario",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium,
-                            color = FireFitWhite,
+                            color = Color(0xFF333333), // Gris oscuro
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
                         OutlinedTextField(
@@ -284,7 +287,7 @@ fun SettingsScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = FireFitDarkGray.copy(alpha = 0.9f)
+                        containerColor = Color(0xFFFFFFFF) // Blanco
                     ),
                     shape = RoundedCornerShape(16.dp)
                 ) {
@@ -297,18 +300,18 @@ fun SettingsScreen(
                             text = "Información de la app",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium,
-                            color = FireFitWhite,
+                            color = Color(0xFF333333), // Gris oscuro
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
                         Text(
                             text = "Mi Tiempo Activo v1.0",
                             fontSize = 14.sp,
-                            color = FireFitLightGray
+                            color = Color(0xFF333333).copy(alpha = 0.7f)
                         )
                         Text(
                             text = "Registra y gestiona tu tiempo activo diario",
                             fontSize = 12.sp,
-                            color = FireFitGray,
+                            color = Color(0xFF333333).copy(alpha = 0.6f),
                             modifier = Modifier.padding(top = 4.dp)
                         )
                     }

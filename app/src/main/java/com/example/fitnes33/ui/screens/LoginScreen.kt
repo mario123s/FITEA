@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -31,14 +32,7 @@ fun LoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        FireFitBlue,
-                        FireFitViolet
-                    )
-                )
-            ),
+            .background(AppBackgroundColor),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -53,7 +47,7 @@ fun LoginScreen(
                 text = "Mi Tiempo Activo",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
-                color = FireFitWhite,
+                color = Color(0xFFFFFFFF), // Blanco
                 modifier = Modifier.padding(bottom = 16.dp)
             )
             
@@ -63,7 +57,7 @@ fun LoginScreen(
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(24.dp)),
                 colors = CardDefaults.cardColors(
-                    containerColor = FireFitDarkGray.copy(alpha = 0.9f)
+                    containerColor = Color(0xFFFFFFFF) // Blanco
                 )
             ) {
                 Column(

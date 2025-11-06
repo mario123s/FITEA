@@ -1,6 +1,8 @@
 package com.example.fitnes33.data.repository
 
+import com.example.fitnes33.data.dao.ActivityStatisticsResult
 import com.example.fitnes33.data.dao.TimeRecordDao
+import com.example.fitnes33.data.model.ActivityStatistics
 import com.example.fitnes33.data.model.ActivityType
 import com.example.fitnes33.data.model.TimeRecord
 import kotlinx.coroutines.flow.Flow
@@ -28,5 +30,15 @@ class TimeRepository(private val dao: TimeRecordDao) {
     
     suspend fun getTotalDurationByDate(date: String): Long =
         dao.getTotalDurationByDate(date) ?: 0L
+    
+    suspend fun getGroupedStatisticsByDateRange(startDate: String, endDate: String): List<ActivityStatistics> {
+        val results = dao.getGroupedStatisticsByDateRange(startDate, endDate)
+        return results.map { result ->
+            ActivityStatistics(
+                activityType = ActivityType.valueOf(result.activityType),
+                totalDuration = result.totalDuration
+            )
+        }
+    }
 }
 

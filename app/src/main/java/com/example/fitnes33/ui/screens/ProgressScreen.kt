@@ -45,14 +45,7 @@ fun ProgressScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        FireFitBlue,
-                        FireFitViolet
-                    )
-                )
-            )
+            .background(AppBackgroundColor)
     ) {
         Column(
             modifier = Modifier
@@ -65,7 +58,7 @@ fun ProgressScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = FireFitDarkGray.copy(alpha = 0.9f)
+                    containerColor = Color(0xFFFFFFFF) // Blanco
                 ),
                 shape = RoundedCornerShape(20.dp)
             ) {
@@ -79,12 +72,12 @@ fun ProgressScreen(
                         text = "Progreso del Día",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = FireFitWhite
+                        color = Color(0xFF333333) // Gris oscuro
                     )
                     Text(
                         text = state.currentDate,
                         fontSize = 14.sp,
-                        color = FireFitLightGray
+                        color = Color(0xFF333333).copy(alpha = 0.7f)
                     )
                 }
             }
@@ -95,7 +88,7 @@ fun ProgressScreen(
                     .size(280.dp)
                     .padding(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = FireFitDarkGray.copy(alpha = 0.9f)
+                    containerColor = Color(0xFFFFFFFF) // Blanco
                 ),
                 shape = RoundedCornerShape(140.dp)
             ) {
@@ -108,7 +101,7 @@ fun ProgressScreen(
                         modifier = Modifier.fillMaxSize(),
                         strokeWidth = 20.dp,
                         color = FireFitOrange,
-                        trackColor = FireFitDarkGray
+                        trackColor = Color(0xFFE0E0E0) // Gris claro para el track
                     )
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -117,17 +110,17 @@ fun ProgressScreen(
                             text = "${(animatedProgress * 100).toInt()}%",
                             fontSize = 48.sp,
                             fontWeight = FontWeight.Bold,
-                            color = FireFitWhite
+                            color = Color(0xFF333333) // Gris oscuro
                         )
                         Text(
                             text = "${state.totalMinutes} min",
                             fontSize = 20.sp,
-                            color = FireFitLightGray
+                            color = Color(0xFF333333).copy(alpha = 0.7f)
                         )
                         Text(
                             text = "de ${targetMinutes} min",
                             fontSize = 14.sp,
-                            color = FireFitGray
+                            color = Color(0xFF333333).copy(alpha = 0.6f)
                         )
                     }
                 }
@@ -142,25 +135,25 @@ fun ProgressScreen(
                     icon = Icons.Default.DriveEta,
                     name = ActivityType.TRANSPORT.displayName,
                     minutes = state.transportMinutes,
-                    color = FireFitOrange
+                    color = TransportColor
                 )
                 ActivityProgressItem(
                     icon = Icons.Default.MenuBook,
                     name = ActivityType.STUDY.displayName,
                     minutes = state.studyMinutes,
-                    color = FireFitCoral
+                    color = StudyColor
                 )
                 ActivityProgressItem(
                     icon = Icons.Default.DirectionsWalk,
                     name = ActivityType.WALKING.displayName,
                     minutes = state.walkingMinutes,
-                    color = FireFitLightOrange
+                    color = WalkingColor
                 )
                 ActivityProgressItem(
                     icon = Icons.Default.Sports,
                     name = ActivityType.SPORT.displayName,
                     minutes = state.sportMinutes,
-                    color = FireFitViolet
+                    color = SportColor
                 )
             }
         }
@@ -177,7 +170,7 @@ fun ActivityProgressItem(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = FireFitDarkGray.copy(alpha = 0.9f)
+            containerColor = Color(0xFFFFFFFF) // Blanco
         ),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -202,7 +195,7 @@ fun ActivityProgressItem(
                     text = name,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
-                    color = FireFitWhite
+                    color = Color(0xFF333333) // Gris oscuro
                 )
             }
             Text(

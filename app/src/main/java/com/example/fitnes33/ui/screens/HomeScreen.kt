@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -42,14 +43,7 @@ fun HomeScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        FireFitBlue,
-                        FireFitViolet
-                    )
-                )
-            )
+            .background(AppBackgroundColor)
     ) {
         Column(
             modifier = Modifier
@@ -62,7 +56,7 @@ fun HomeScreen(
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = FireFitDarkGray.copy(alpha = 0.9f)
+                    containerColor = Color(0xFFFFFFFF) // Blanco
                 ),
                 shape = RoundedCornerShape(20.dp)
             ) {
@@ -75,13 +69,13 @@ fun HomeScreen(
                         text = "¡Hola, $userName!",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = FireFitWhite
+                        color = Color(0xFF333333) // Gris oscuro
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = date,
                         fontSize = 16.sp,
-                        color = FireFitLightGray
+                        color = Color(0xFF333333).copy(alpha = 0.7f)
                     )
                 }
             }
@@ -143,13 +137,17 @@ fun ActivityCard(
         label = "progress"
     )
     
+    val activityColor = when (activityType) {
+        ActivityType.TRANSPORT -> TransportColor
+        ActivityType.STUDY -> StudyColor
+        ActivityType.WALKING -> WalkingColor
+        ActivityType.SPORT -> SportColor
+    }
+    
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = if (activityState.isActive) 
-                FireFitOrange.copy(alpha = 0.3f) 
-            else 
-                FireFitDarkGray.copy(alpha = 0.9f)
+            containerColor = Color(0xFFFFFFFF) // Blanco
         ),
         shape = RoundedCornerShape(20.dp)
     ) {
@@ -170,7 +168,7 @@ fun ActivityCard(
                     Icon(
                         imageVector = icon,
                         contentDescription = activityType.displayName,
-                        tint = FireFitOrange,
+                        tint = activityColor,
                         modifier = Modifier.size(32.dp)
                     )
                     Column {
@@ -178,12 +176,12 @@ fun ActivityCard(
                             text = activityType.displayName,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = FireFitWhite
+                            color = Color(0xFF333333) // Gris oscuro
                         )
                         Text(
                             text = formatDuration(activityState.totalDurationToday + activityState.currentDuration),
                             fontSize = 14.sp,
-                            color = FireFitLightGray
+                            color = Color(0xFF333333).copy(alpha = 0.7f)
                         )
                     }
                 }
@@ -203,7 +201,7 @@ fun ActivityCard(
                     Button(
                         onClick = onStart,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = FireFitOrange
+                            containerColor = activityColor
                         ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
@@ -221,14 +219,14 @@ fun ActivityCard(
                         .height(4.dp)
                         .clip(RoundedCornerShape(2.dp)),
                     progress = animatedProgress,
-                    color = FireFitOrange,
-                    trackColor = FireFitDarkGray
+                    color = activityColor,
+                    trackColor = Color(0xFFE0E0E0) // Gris claro para el track
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Tiempo activo: ${formatDuration(activityState.currentDuration)}",
                     fontSize = 12.sp,
-                    color = FireFitLightOrange
+                    color = activityColor
                 )
             }
         }

@@ -5,6 +5,11 @@ import com.example.fitnes33.data.model.ActivityType
 import com.example.fitnes33.data.model.TimeRecord
 import kotlinx.coroutines.flow.Flow
 
+data class ActivityStatisticsResult(
+    val activityType: String,
+    val totalDuration: Long
+)
+
 @Dao
 interface TimeRecordDao {
     @Query("SELECT * FROM time_records WHERE date = :date ORDER BY startTime DESC")
@@ -30,5 +35,14 @@ interface TimeRecordDao {
     
     @Query("SELECT SUM(duration) FROM time_records WHERE date = :date")
     suspend fun getTotalDurationByDate(date: String): Long?
+    
+    @Query("""
+        SELECT activityType, SUM(duration) as totalDuration 
+        FROM time_records 
+        WHERE date BETWEEN :startDate AND :endDate 
+        GROUP BY activityType
+        ORDER BY totalDuration DESC
+    """)
+    suspend fun getGroupedStatisticsByDateRange(startDate: String, endDate: String): List<ActivityStatisticsResult>
 }
 
