@@ -1,10 +1,14 @@
 package com.example.fitnes33.ui.screens
 
+import androidx.compose.animation.core.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -12,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -47,7 +52,8 @@ fun HomeScreen(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
             // Header con saludo y fecha
@@ -82,9 +88,7 @@ fun HomeScreen(
             
             // Lista de actividades
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
+                modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 ActivityCard(
@@ -162,26 +166,72 @@ fun ActivityCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
+                    modifier = Modifier.weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = activityType.displayName,
-                        tint = activityColor,
-                        modifier = Modifier.size(32.dp)
+                    // Animaciones del ícono
+                    val isActive = activityState.isActive
+                    
+                    // animación de color
+                    val animatedColor by animateColorAsState(
+                        targetValue = if (isActive) activityColor else activityColor.copy(alpha = 0.6f),
+                        animationSpec = tween<Color>(durationMillis = 300),
+                        label = "icon_color"
                     )
-                    Column {
+                    
+                    // animación de escala (rebote)
+                    val scale by animateFloatAsState(
+                        targetValue = if (isActive) 1.15f else 1f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessMedium
+                        ),
+                        label = "icon_scale"
+                    )
+                    
+                    // animación continua (pulso cuando está activa)
+                    key(isActive) {
+                        val pulseScale by if (isActive) {
+                            val infiniteTransition = rememberInfiniteTransition(label = "icon_pulse")
+                            infiniteTransition.animateFloat(
+                                initialValue = 1f,
+                                targetValue = 1.08f,
+                                animationSpec = infiniteRepeatable(
+                                    animation = tween(durationMillis = 1000, easing = FastOutSlowInEasing),
+                                    repeatMode = RepeatMode.Reverse
+                                ),
+                                label = "icon_pulse_scale"
+                            )
+                        } else {
+                            remember { mutableStateOf(1f) }
+                        }
+                        
+                        // Aplicar animaciones al ícono
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = activityType.displayName,
+                            tint = animatedColor,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .scale(scale * pulseScale)
+                        )
+                    }
+                    Column(
+                        modifier = Modifier.weight(1f, fill = false)
+                    ) {
                         Text(
                             text = activityType.displayName,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF333333) // Gris oscuro
+                            color = Color(0xFF333333), // Gris oscuro
+                            maxLines = 1
                         )
                         Text(
                             text = formatDuration(activityState.totalDurationToday + activityState.currentDuration),
                             fontSize = 14.sp,
-                            color = Color(0xFF333333).copy(alpha = 0.7f)
+                            color = Color(0xFF333333).copy(alpha = 0.7f),
+                            maxLines = 1
                         )
                     }
                 }

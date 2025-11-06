@@ -4,13 +4,20 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fitnes33.data.database.AppDatabase
 import com.example.fitnes33.data.repository.TimeRepository
@@ -78,7 +85,10 @@ fun MainNavigation(
     
     Scaffold(
         bottomBar = {
-            NavigationBar {
+            NavigationBar(
+                containerColor = Color.White,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 AppDestinations.entries.forEach { destination ->
                     NavigationBarItem(
                         icon = {
@@ -87,9 +97,18 @@ fun MainNavigation(
                                 contentDescription = destination.label
                             )
                         },
-                        label = { Text(destination.label) },
+                        label = { 
+                            Text(destination.label)
+                        },
                         selected = destination == currentDestination,
-                        onClick = { currentDestination = destination }
+                        onClick = { currentDestination = destination },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Color(0xFF762E48),
+                            selectedTextColor = Color(0xFF762E48),
+                            unselectedIconColor = Color(0xFF333333).copy(alpha = 0.6f),
+                            unselectedTextColor = Color(0xFF333333).copy(alpha = 0.6f),
+                            indicatorColor = Color(0xFF762E48).copy(alpha = 0.2f)
+                        )
                     )
                 }
             }

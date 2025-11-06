@@ -2,6 +2,7 @@ package com.example.fitnes33.ui.screens
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,8 +13,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -21,6 +26,8 @@ import androidx.compose.ui.unit.sp
 import com.example.fitnes33.data.model.ActivityType
 import com.example.fitnes33.ui.theme.*
 import com.example.fitnes33.viewmodel.ProgressViewModel
+import kotlin.math.cos
+import kotlin.math.sin
 
 @Composable
 fun ProgressScreen(
@@ -82,7 +89,7 @@ fun ProgressScreen(
                 }
             }
             
-            // Gráfico circular
+            // Gráfico circular con colores por actividad
             Card(
                 modifier = Modifier
                     .size(280.dp)
@@ -96,13 +103,63 @@ fun ProgressScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(
-                        progress = animatedProgress,
-                        modifier = Modifier.fillMaxSize(),
-                        strokeWidth = 20.dp,
-                        color = FireFitOrange,
-                        trackColor = Color(0xFFE0E0E0) // Gris claro para el track
-                    )
+                    // Gráfico personalizado con colores por actividad
+                    val activities = remember(state) {
+                        listOf(
+                            Pair(state.transportMinutes, TransportColor),
+                            Pair(state.studyMinutes, StudyColor),
+                            Pair(state.walkingMinutes, WalkingColor),
+                            Pair(state.sportMinutes, SportColor)
+                        ).filter { it.first > 0 } // Solo actividades con minutos
+                    }
+                    
+                    val totalProgress = remember(state) { 
+                        (state.totalMinutes.toFloat() / targetMinutes.toFloat()).coerceIn(0f, 1f)
+                    }
+                    
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        val size = this.size.minDimension
+                        val strokeWidth = 20.dp.toPx()
+                        val radius = (size - strokeWidth) / 2
+                        val center = Offset(size / 2, size / 2)
+                        
+                        // Dibujar track de fondo (gris claro) para el objetivo completo
+                        drawCircle(
+                            color = Color(0xFFE0E0E0),
+                            radius = radius,
+                            center = center,
+                            style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                        )
+                        
+                        if (activities.isNotEmpty() && state.totalMinutes > 0) {
+                            val totalMinutes = state.totalMinutes.toFloat()
+                            var currentAngle = -90f // Comenzar desde arriba
+                            
+                            // Dibujar cada segmento de actividad proporcional a su contribución al total
+                            activities.forEach { (minutes, color) ->
+                                val proportion = (minutes.toFloat() / totalMinutes).coerceIn(0f, 1f)
+                                // El sweepAngle es proporcional al progreso total animado
+                                val sweepAngle = proportion * 360f * animatedProgress * totalProgress
+                                
+                                if (sweepAngle > 0.1f) { // Solo dibujar si el ángulo es significativo
+                                    drawArc(
+                                        color = color,
+                                        startAngle = currentAngle,
+                                        sweepAngle = sweepAngle,
+                                        useCenter = false,
+                                        topLeft = Offset(
+                                            center.x - radius,
+                                            center.y - radius
+                                        ),
+                                        size = Size(radius * 2, radius * 2),
+                                        style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                                    )
+                                    currentAngle += sweepAngle
+                                }
+                            }
+                        }
+                    }
+                    
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {

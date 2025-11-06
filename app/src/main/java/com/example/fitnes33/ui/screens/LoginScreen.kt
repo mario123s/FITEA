@@ -78,7 +78,7 @@ fun LoginScreen(
                                 containerColor = if (!isSignUp) FireFitOrange else FireFitDarkGray
                             )
                         ) {
-                            Text("Login")
+                            Text("Login", color = Color.White)
                         }
                         Button(
                             onClick = { isSignUp = true },
@@ -87,7 +87,7 @@ fun LoginScreen(
                                 containerColor = if (isSignUp) FireFitOrange else FireFitDarkGray
                             )
                         ) {
-                            Text("Sign Up")
+                            Text("Sign Up", color = Color.White)
                         }
                     }
                     
@@ -97,13 +97,16 @@ fun LoginScreen(
                     OutlinedTextField(
                         value = userName,
                         onValueChange = { userName = it },
-                        label = { Text("Nombre de usuario") },
+                        label = { Text("Nombre de usuario", color = Color.Black) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = FireFitOrange,
                             unfocusedBorderColor = FireFitGray,
-                            focusedLabelColor = FireFitOrange
+                            focusedLabelColor = FireFitOrange,
+                            unfocusedLabelColor = Color.Black,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
                         )
                     )
                     
@@ -111,14 +114,17 @@ fun LoginScreen(
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
-                        label = { Text("Contraseña") },
+                        label = { Text("Contraseña", color = Color.Black) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         visualTransformation = PasswordVisualTransformation(),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = FireFitOrange,
                             unfocusedBorderColor = FireFitGray,
-                            focusedLabelColor = FireFitOrange
+                            focusedLabelColor = FireFitOrange,
+                            unfocusedLabelColor = Color.Black,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
                         )
                     )
                     
@@ -131,14 +137,17 @@ fun LoginScreen(
                         OutlinedTextField(
                             value = confirmPassword,
                             onValueChange = { confirmPassword = it },
-                            label = { Text("Confirmar contraseña") },
+                            label = { Text("Confirmar contraseña", color = Color.Black) },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
                             visualTransformation = PasswordVisualTransformation(),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = FireFitOrange,
                                 unfocusedBorderColor = FireFitGray,
-                                focusedLabelColor = FireFitOrange
+                                focusedLabelColor = FireFitOrange,
+                                unfocusedLabelColor = Color.Black,
+                                focusedTextColor = Color.Black,
+                                unfocusedTextColor = Color.Black
                             )
                         )
                     }
